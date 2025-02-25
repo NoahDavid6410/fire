@@ -1,0 +1,59 @@
+#include <iostream>
+#include <thread>
+#include <mutex>
+#include <vector>
+#include <chrono>
+#include <random>
+
+class ThermalCamera {
+public:
+    bool detectFire() {
+        // Simulate fire detection logic
+        return rand() % 2 == 0; // Randomly returns true or false
+    }
+};
+
+class Extinguisher {
+public:
+    void activate() {
+        std::cout << "Extinguisher activated!" << std::endl;
+        // Simulate extinguishing fire
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        std::cout << "Fire extinguished!" << std::endl;
+    }
+};
+
+class Drone {
+private:
+    ThermalCamera camera;
+    Extinguisher extinguisher;
+    std::mutex mtx;
+    bool fireDetected;
+
+public:
+    Drone() : fireDetected(false) {}
+
+    void monitor() {
+        while (true) {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            if (camera.detectFire()) {
+                std::lock_guard<std::mutex> lock(mtx);
+                fireDetected = true;
+                std::cout << "Fire detected!" << std::endl;
+                extinguishFire();
+            }
+        }
+    }
+
+    void extinguishFire() {
+        std::thread extinguisherThread(&Extinguisher::activate, &extinguisher);
+        extinguisherThread.detach();
+    }
+};
+
+int main() {
+    Drone drone;
+    std::thread monitorThread(&Drone::monitor, &drone);
+    monitorThread.join();
+    return 0;
+}
