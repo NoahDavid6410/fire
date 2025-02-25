@@ -1,0 +1,70 @@
+#include <iostream>
+#include <thread>
+#include <chrono>
+#include <vector>
+#include <mutex>
+
+class ThermalCamera {
+public:
+    bool detectFire() {
+        // Simulate fire detection logic
+        return rand() % 2 == 0; // Randomly detects fire
+    }
+};
+
+class Extinguisher {
+public:
+    void activate() {
+        std::cout << "Extinguisher activated!" << std::endl;
+        std::this_thread::sleep_for(std::chrono::seconds(5)); // Simulate extinguishing time
+        std::cout << "Fire extinguished!" << std::endl;
+    }
+};
+
+class ChargingStation {
+public:
+    void recharge() {
+        std::cout << "Recharging..." << std::endl;
+        std::this_thread::sleep_for(std::chrono::seconds(10)); // Simulate charging time
+        std::cout << "Recharged!" << std::endl;
+    }
+};
+
+class FireFightingDrone {
+private:
+    ThermalCamera camera;
+    Extinguisher extinguisher;
+    ChargingStation chargingStation;
+    std::mutex mtx;
+
+public:
+    void searchForFire() {
+        while (true) {
+            if (camera.detectFire()) {
+                std::cout << "Fire detected!" << std::endl;
+                extinguishFire();
+                returnToChargingStation();
+                break;
+            }
+            std::this_thread::sleep_for(std::chrono::seconds(1)); // Simulate search interval
+        }
+    }
+
+    void extinguishFire() {
+        std::lock_guard<std::mutex> lock(mtx);
+        std::thread extinguisherThread(&Extinguisher::activate, &extinguisher);
+        extinguisherThread.join();
+    }
+
+    void returnToChargingStation() {
+        std::cout << "Returning to charging station..." << std::endl;
+        chargingStation.recharge();
+    }
+};
+
+int main() {
+    FireFightingDrone drone;
+    std::thread searchThread(&FireFightingDrone::searchForFire, &drone);
+    searchThread.join();
+    return 0;
+}
