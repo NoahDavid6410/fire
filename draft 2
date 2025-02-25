@@ -1,0 +1,80 @@
+#include <iostream>
+#include <vector>
+#include <thread>
+#include <chrono>
+#include <random>
+
+class ThermalCamera {
+public:
+    bool detectFire() {
+        // Simulate fire detection logic
+        return rand() % 2 == 0; // Randomly returns true or false
+    }
+};
+
+class Drone {
+private:
+    ThermalCamera camera;
+    bool isFlying;
+    std::vector<std::pair<double, double>> fireLocations;
+
+public:
+    Drone() : isFlying(false) {}
+
+    void takeOff() {
+        isFlying = true;
+        std::cout << "Drone taking off..." << std::endl;
+    }
+
+    void land() {
+        isFlying = false;
+        std::cout << "Drone landing..." << std::endl;
+    }
+
+    void scanArea() {
+        if (!isFlying) {
+            std::cout << "Drone must be flying to scan the area." << std::endl;
+            return;
+        }
+
+        std::cout << "Scanning area for fires..." << std::endl;
+        std::this_thread::sleep_for(std::chrono::seconds(2)); // Simulate scanning time
+
+        if (camera.detectFire()) {
+            double x = static_cast<double>(rand() % 100);
+            double y = static_cast<double>(rand() % 100);
+            fireLocations.push_back({x, y});
+            std::cout << "Fire detected at location: (" << x << ", " << y << ")" << std::endl;
+        } else {
+            std::cout << "No fires detected." << std::endl;
+        }
+    }
+
+    void extinguishFire() {
+        if (fireLocations.empty()) {
+            std::cout << "No fires to extinguish." << std::endl;
+            return;
+        }
+
+        for (const auto& location : fireLocations) {
+            std::cout << "Extinguishing fire at location: (" << location.first << ", " << location.second << ")" << std::endl;
+            std::this_thread::sleep_for(std::chrono::seconds(1)); // Simulate extinguishing time
+        }
+        fireLocations.clear();
+        std::cout << "All fires extinguished." << std::endl;
+    }
+
+    void operate() {
+        takeOff();
+        scanArea();
+        extinguishFire();
+        land();
+    }
+};
+
+int main() {
+    srand(static_cast<unsigned int>(time(0))); // Seed for random number generation
+    Drone fireFightingDrone;
+    fireFightingDrone.operate();
+    return 0;
+}
